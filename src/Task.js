@@ -18,6 +18,7 @@ class Task extends Component {
           <Container
             innerRef={provided.innerRef}
             isDragging={snapshot.isDragging}
+            aria-roledescription="Press space bar to lift the task"
             {...provided.draggableProps}
             {...provided.dragHandleProps}
           >
