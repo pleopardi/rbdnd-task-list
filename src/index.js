@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, PureComponent } from "react";
 import ReactDOM from "react-dom";
 import "@atlaskit/css-reset";
 import styled from "styled-components";
@@ -9,6 +9,15 @@ import Column from "./Column";
 const Container = styled.div`
   display: flex;
 `;
+
+class InnerList extends PureComponent {
+  render() {
+    const { column, taskMap, index } = this.props;
+    const tasks = column.taskIds.map(taskId => taskMap[taskId]);
+
+    return <Column column={column} tasks={tasks} index={index} />;
+  }
+}
 
 class App extends Component {
   state = initialData;
@@ -111,15 +120,12 @@ class App extends Component {
             >
               {this.state.columnOrder.map((columnId, index) => {
                 const column = this.state.columns[columnId];
-                const tasks = column.taskIds.map(
-                  taskId => this.state.tasks[taskId]
-                );
 
                 return (
-                  <Column
+                  <InnerList
                     key={column.id}
                     column={column}
-                    tasks={tasks}
+                    taskMap={this.state.tasks}
                     index={index}
                   />
                 );
