@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import "@atlaskit/css-reset";
 import styled from "styled-components";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import initialData from "./initialData";
 import Column from "./Column";
 
@@ -14,7 +14,7 @@ class App extends Component {
   state = initialData;
 
   onDragEnd = result => {
-    const { destination, source, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
     if (!destination) {
       return;
@@ -27,17 +27,31 @@ class App extends Component {
       return;
     }
 
-    const start = this.state.columns[source.droppableId];
-    const finish = this.state.columns[destination.droppableId];
+    if (type === "column") {
+      const newColumnOrder = [...this.state.columnOrder];
+      newColumnOrder.splice(source.index, 1);
+      newColumnOrder.splice(destination.index, 0, draggableId);
 
-    if (start === finish) {
-      const newTaskIds = [...start.taskIds];
+      const newState = {
+        ...this.state,
+        columnOrder: newColumnOrder
+      };
+
+      this.setState(() => newState);
+
+      return;
+    }
+    const home = this.state.columns[source.droppableId];
+    const foreign = this.state.columns[destination.droppableId];
+
+    if (home === foreign) {
+      const newTaskIds = [...home.taskIds];
 
       newTaskIds.splice(source.index, 1);
       newTaskIds.splice(destination.index, 0, draggableId);
 
       const newColumn = {
-        ...start,
+        ...home,
         taskIds: newTaskIds
       };
 
@@ -54,28 +68,28 @@ class App extends Component {
       return;
     }
 
-    const startTaskIds = [...start.taskIds];
-    startTaskIds.splice(source.index, 1);
+    const homeTaskIds = [...home.taskIds];
+    homeTaskIds.splice(source.index, 1);
 
-    const newStart = {
-      ...start,
-      taskIds: startTaskIds
+    const newHome = {
+      ...home,
+      taskIds: homeTaskIds
     };
 
-    const finishTaskIds = [...finish.taskIds];
-    finishTaskIds.splice(destination.index, 0, draggableId);
+    const foreignTaskIds = [...foreign.taskIds];
+    foreignTaskIds.splice(destination.index, 0, draggableId);
 
-    const newFinish = {
-      ...finish,
-      taskIds: finishTaskIds
+    const newForeign = {
+      ...foreign,
+      taskIds: foreignTaskIds
     };
 
     const newState = {
       ...this.state,
       columns: {
         ...this.state.columns,
-        [newStart.id]: newStart,
-        [newFinish.id]: newFinish
+        [newHome.id]: newHome,
+        [newForeign.id]: newForeign
       }
     };
 
@@ -85,16 +99,35 @@ class App extends Component {
   render() {
     return (
       <DragDropContext onDragEnd={this.onDragEnd}>
-        <Container>
-          {this.state.columnOrder.map(columnId => {
-            const column = this.state.columns[columnId];
-            const tasks = column.taskIds.map(
-              taskId => this.state.tasks[taskId]
-            );
+        <Droppable
+          droppableId="all-columns"
+          direction="horizontal"
+          type="column"
+        >
+          {provided => (
+            <Container
+              innerRef={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {this.state.columnOrder.map((columnId, index) => {
+                const column = this.state.columns[columnId];
+                const tasks = column.taskIds.map(
+                  taskId => this.state.tasks[taskId]
+                );
 
-            return <Column key={column.id} column={column} tasks={tasks} />;
-          })}
-        </Container>
+                return (
+                  <Column
+                    key={column.id}
+                    column={column}
+                    tasks={tasks}
+                    index={index}
+                  />
+                );
+              })}
+              {provided.placeholder}
+            </Container>
+          )}
+        </Droppable>
       </DragDropContext>
     );
   }
