@@ -7,6 +7,8 @@ const Container = styled.div`
   margin: 8px;
   border: 1px solid lightgrey;
   border-radius: 2px;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Title = styled.h3`
@@ -16,6 +18,7 @@ const TaskList = styled.div`
   padding: 8px;
   transition: background-color 0.2s ease;
   background-color: ${props => (props.isDraggingOver ? "skyblue" : "white")};
+  display: flex;
 `;
 
 class Column extends Component {
@@ -23,7 +26,7 @@ class Column extends Component {
     return (
       <Container>
         <Title>{this.props.column.title}</Title>
-        <Droppable droppableId={this.props.column.id}>
+        <Droppable droppableId={this.props.column.id} direction="horizontal">
           {(provided, snapshot) => (
             <TaskList
               innerRef={provided.innerRef}
